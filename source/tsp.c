@@ -243,8 +243,6 @@ int Unvisit(tour_t tour, city_t city) {
 }	/* Unvisit */
 
 
-
-
 /*----------------------------------------------------------------------------
  * remove the last city of tour
  */
@@ -255,6 +253,24 @@ void Remove_last_city(tour_t tour) {
 	city_t new_last_city = tour->cities[tour->count-1];
 	tour->cost -= digraph[new_last_city*n + old_last_city];
 }	/* Remove_last_city */
+
+
+/*----------------------------------------------------------------------------
+ * release mem
+ */
+void Free_stack(stack_t stack) {
+	free(stack->list);
+	free(stack);
+}	/* Free_stack */
+
+
+/*----------------------------------------------------------------------------
+ * release mem of tour
+ */
+void Free_tour(tour_t tour) {
+	free(tour->cities);
+	free(tour);
+}	/* Free_tour */
 
 
 /*----------------------------------------------------------------------------
@@ -269,11 +285,6 @@ void Find_best_tour() {
 	init_tour = Init_tour(0);
 	best_tour = Init_tour(INFINITY);
 	
-#	ifdef DEBUG
-	//Print_tour(best_tour);
-	//Print_stack(stack);
-#	endif
-
 	Push_copy(stack, init_tour);
 	while(!Empty(stack)) {
 #	ifdef DEBUG
@@ -292,10 +303,11 @@ void Find_best_tour() {
 				}
 			}
 		}
+		Free_tour(tmp_tour);
 	}
 
-	// TODO: release mem
-
+	// release mem
+	Free_stack(stack);
 }	/* Find_best_tour */
 
 
@@ -305,6 +317,7 @@ void Find_best_tour() {
 int main(int argc, char* argv[]) {
 	// read file
 	Read_digraph(argv[1]);
+
 #	ifdef DEBUG
 	Print_digraph();
 #	endif

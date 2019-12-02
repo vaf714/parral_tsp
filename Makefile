@@ -3,8 +3,8 @@ EXE_DIR=bin
 SOURCE_DIR=source
 
 CC=gcc
-# CFLAGS=-g -Wall -D DEBUG
-CFLAGS=-g -Wall
+CFLAGS=-g -Wall -D DEBUG
+#CFLAGS=-g -Wall
 
 OBJECTS=tsp.c timer.h
 OBJ:=$(foreach obj,$(OBJECTS),$(SOURCE_DIR)/$(obj))

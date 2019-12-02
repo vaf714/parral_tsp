@@ -3,16 +3,23 @@
 #include <string.h>
 #include "timer.h"
 
+/* define some shortcut for struct */
+#define City_count(tour) (tour->count)
+#define Tour_cost(tour) (tour->cost)
+#define Last_city(tour) (tour->cities[tour->count-1])
+#define Tour_city(tour, i) (tour->cities[i])
+#define Cost_a2b(a, b) (digraph[a*n+b])
+
 const int NO_CITY = -1;
 const int INFINITY = 1000000;
-const int TURE = 1;
+const int TRUE = 1;
 const int FALSE = 0;
+
 
 typedef int city_t;
 typedef int cost_t;
 
-
-// tour cost struct
+/* tour cost struct */
 typedef struct {
 	city_t* cities;	// city
 	int count;		// city number
@@ -20,7 +27,7 @@ typedef struct {
 } tour_struct;
 typedef tour_struct* tour_t;
 
-// stack struct
+/* stack struct */
 typedef struct {
 	tour_t* list;	// stack item
 	int sz;			// number of stack item
@@ -31,6 +38,7 @@ int n;				// city number
 int* digraph;		// digraph
 city_t home_town = 0;
 tour_t best_tour;
+
 
 /*-----------------------------------------------------------------------------
  * read digraph form file
@@ -79,7 +87,6 @@ void Print_digraph() {
 		}
 		printf("\n");
 	}
-	printf("\n");
 }	/* Print_digraph */
 
 /*-----------------------------------------------------------------------------
@@ -161,7 +168,7 @@ tour_t Init_tour(cost_t cost) {
  */
 int Empty(stack_t stack) {
 	if(stack == NULL || stack->sz == 0) {
-		return TURE;
+		return TRUE;
 	}
 	return FALSE;
 }	/* Empty */
@@ -215,9 +222,9 @@ tour_t Pop(stack_t stack) {
  * add city to tour 
  */
 void Add_city(tour_t tour, city_t city) {
-	city_t old_last_city = tour->cities[tour->count-1];
+	city_t old_last_city = Last_city(tour);
 	tour->cities[tour->count++] = city;
-	tour->cost += digraph[old_last_city*n+city];
+	tour->cost += Cost_a2b(old_last_city, city);
 }	/* Add_city */
 
 
@@ -239,19 +246,31 @@ int Unvisit(tour_t tour, city_t city) {
 			return FALSE;
 		}
 	}
-	return TURE;
+	return TRUE;
 }	/* Unvisit */
+
+
+/*----------------------------------------------------------------------------
+ * detemine a nbr city is feasible(the cost is less than the best tour when add this city or this city have visited)
+ */
+int Feasible(tour_t tour, city_t city) {
+	city_t last_city = Last_city(tour);
+	if(Unvisit(tour, city) && Cost_a2b(last_city, city) + tour->cost < best_tour->cost) {
+		return TRUE;
+	}
+	return FALSE;
+}	/* Feasible */
 
 
 /*----------------------------------------------------------------------------
  * remove the last city of tour
  */
 void Remove_last_city(tour_t tour) {
-	city_t old_last_city = tour->cities[tour->count-1];
+	city_t old_last_city = Last_city(tour);
 
 	tour->cities[--(tour->count)] = NO_CITY;
-	city_t new_last_city = tour->cities[tour->count-1];
-	tour->cost -= digraph[new_last_city*n + old_last_city];
+	city_t new_last_city = Last_city(tour);
+	tour->cost -= Cost_a2b(new_last_city, old_last_city);
 }	/* Remove_last_city */
 
 
@@ -290,13 +309,15 @@ void Find_best_tour() {
 #	ifdef DEBUG
 		Print_stack(stack);
 		Print_tour(best_tour);
+		printf("\n");
 #	endif
 		tmp_tour = Pop(stack);
-		if(tmp_tour->count == n && tmp_tour->cost + digraph[tmp_tour->cities[tmp_tour->count-1]*n+home_town] < best_tour->cost) {
+		if(tmp_tour->count == n && tmp_tour->cost + Cost_a2b(Last_city(tmp_tour), home_town) < best_tour->cost) {
+			// update best tour if number of this tour is equal to n and cost is less than the best tour
 			Update_best_tour(tmp_tour);
 		} else {
 			for(city_t i = n-1; i >= 1; i--) {
-				if (Unvisit(tmp_tour, i)) {
+				if (Feasible(tmp_tour, i)) {
 					Add_city(tmp_tour, i);
 					Push_copy(stack, tmp_tour);
 					Remove_last_city(tmp_tour);
@@ -306,15 +327,18 @@ void Find_best_tour() {
 		Free_tour(tmp_tour);
 	}
 
-	// release mem
 	Free_stack(stack);
 }	/* Find_best_tour */
 
 
-/*-----------------------------------------------------------------------------
- * main
- */
+/*--------------------------------------------------------------------------*/
 int main(int argc, char* argv[]) {
+	// argc is number of argv, argv[0] is name of this proc(tsp)
+	if (argc < 1) {
+		fprintf(stderr, "Please use 'tsp filename'!\n");
+		exit(-1);
+	}
+
 	// read file
 	Read_digraph(argv[1]);
 
@@ -324,5 +348,6 @@ int main(int argc, char* argv[]) {
 
 	Find_best_tour();
 	Print_tour(best_tour);
+
 	return 0;
 }	/* main */

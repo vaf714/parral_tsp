@@ -209,7 +209,7 @@ int Empty(stack_t stack) {
 		return TRUE;
 	}
 	return FALSE;
-}	/* Empty */
+}	/* Empty */ 
 
 
 /*----------------------------------------------------------------------------
@@ -513,7 +513,7 @@ stack_t Split_stack(stack_t stack, long my_rank) {
 		}
 		stack->sz = old_dest;
 		new_stack->sz = new_dest;
-	}	
+	}
 	return new_stack;
 }
 

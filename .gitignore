@@ -1,4 +1,4 @@
-/bin/tsp
-/build/*
+/bin
+/.vscode
 *.swp
 *.swo

@@ -1,5 +1,5 @@
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include "timer.h"
 
@@ -333,21 +333,28 @@ void Find_best_tour() {
 
 /*--------------------------------------------------------------------------*/
 int main(int argc, char* argv[]) {
+	double start_time, end_time;
 	// argc is number of argv, argv[0] is name of this proc(tsp)
 	if (argc < 1) {
-		fprintf(stderr, "Please use 'tsp filename'!\n");
+		fprintf(stderr, "Please input filename!\n");
 		exit(-1);
 	}
-
 	// read file
 	Read_digraph(argv[1]);
-
 #	ifdef DEBUG
 	Print_digraph();
 #	endif
 
+	GET_TIME(start_time);
 	Find_best_tour();
+	GET_TIME(end_time);
+
 	Print_tour(best_tour);
+	printf("Elapsed time is: %e s\n", end_time - start_time);
+	
+	// release mem
+	Free_tour(best_tour);
+	free(digraph);
 
 	return 0;
 }	/* main */

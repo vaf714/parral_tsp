@@ -34,7 +34,7 @@ typedef struct {
 	tour_t* list;	// stack item
 	int sz;			// number of stack item
 } stack_struct;
-typedef stack_struct* stack_t;
+typedef stack_struct* my_stack_t;
 
 typedef struct {
 	tour_t* list;
@@ -54,7 +54,7 @@ typedef struct {
 typedef barrier_struct* my_barrier_t;
 
 typedef struct {
-	stack_t new_stack;
+	my_stack_t new_stack;
 	int wait_threads_count;
 	pthread_mutex_t mutex;
 	pthread_cond_t cond;
@@ -140,7 +140,7 @@ void Print_tour(tour_t tour) {
 /*-----------------------------------------------------------------------------
  * print stack
  */
-void Print_stack(int rank, stack_t stack) {
+void Print_stack(int rank, my_stack_t stack) {
 	pthread_mutex_lock(&print_mutex);
 	if (stack == NULL || stack->sz == 0) {
 		fprintf(stderr, "stack is NULL\n");
@@ -166,8 +166,8 @@ void Print_stack(int rank, stack_t stack) {
 /*-----------------------------------------------------------------------------
  * init stack
  */
-stack_t Init_stack() {
-	stack_t stack = malloc(sizeof(stack_struct));
+my_stack_t Init_stack() {
+	my_stack_t stack = malloc(sizeof(stack_struct));
 	stack->list = malloc(n*n*sizeof(tour_t));
 	for(int i = 0; i < n*n; i++)
 		stack->list[i] = NULL;
@@ -204,7 +204,7 @@ tour_t Init_tour(cost_t cost) {
 /*----------------------------------------------------------------------------
  * determine if the stack is empty
  */
-int Empty(stack_t stack) {
+int Empty(my_stack_t stack) {
 	if(stack == NULL || stack->sz == 0) {
 		return TRUE;
 	}
@@ -225,7 +225,7 @@ void Copy_tour(tour_t dest_tour, tour_t source_tour) {
 /*----------------------------------------------------------------------------
  * push tour to stack(copy)
  */
-void Push_copy(stack_t stack, tour_t tour) {
+void Push_copy(my_stack_t stack, tour_t tour) {
 	// determine if the stack is overflow
 	if(stack->sz >= n*n) {
 		fprintf(stderr, "stack overflow!\n");
@@ -243,7 +243,7 @@ void Push_copy(stack_t stack, tour_t tour) {
 /*----------------------------------------------------------------------------
  * pop
  */
-tour_t Pop(stack_t stack) {
+tour_t Pop(my_stack_t stack) {
 	// determine if the stack is empty
 	if(Empty(stack)) {
 		fprintf(stderr, "stack is empty!\n");
@@ -327,7 +327,7 @@ void Remove_last_city(tour_t tour) {
 /*----------------------------------------------------------------------------
  * release mem
  */
-void Free_stack(stack_t stack) {
+void Free_stack(my_stack_t stack) {
 	free(stack->list);
 	free(stack);
 }	/* Free_stack */
@@ -470,7 +470,7 @@ void My_barrier(my_barrier_t bar) {
 }
 
 
-void Partition_tree(long rank, stack_t stack) {
+void Partition_tree(long rank, my_stack_t stack) {
 	int my_first_tour, my_last_tour, i;
 
 	if (rank == 0) {
@@ -500,9 +500,9 @@ void Partition_tree(long rank, stack_t stack) {
 
 
 
-stack_t Split_stack(stack_t stack, long my_rank) {
+my_stack_t Split_stack(my_stack_t stack, long my_rank) {
 	int old_source, new_dest, old_dest;
-	stack_t new_stack = Init_stack();
+	my_stack_t new_stack = Init_stack();
 	new_dest = 0;
 	old_dest = 1;
 	for(int new_source = 1; new_source < stack->sz; new_source += 2){
@@ -518,8 +518,8 @@ stack_t Split_stack(stack_t stack, long my_rank) {
 }
 
 
-int Terminated(stack_t* stack_p, long my_rank) {
-	stack_t stack = *stack_p;
+int Terminated(my_stack_t* stack_p, long my_rank) {
+	my_stack_t stack = *stack_p;
 	int got_lock;
 
 	if (stack->sz >= min_split_sz && term->wait_threads_count > 0 && term->new_stack == NULL) {
@@ -579,7 +579,7 @@ void Free_queue(queue_t queue) {
  */
 void* Find_best_tour(void* rank) {
 	long my_rank = (long) rank;
-	stack_t my_stack;
+	my_stack_t my_stack;
 	tour_t tmp_tour;
 	
 	my_stack = Init_stack();
